@@ -15,7 +15,7 @@ const MovieCard = ({
 }: Movie) => {
 
   const { user } = useAuth() as { user: any };
-  
+
   const handleLongPress = async () => {
     const posterUrl = poster_path
       ? `https://image.tmdb.org/t/p/w500${poster_path}`
@@ -26,9 +26,11 @@ const MovieCard = ({
       title,
       poster_url: posterUrl,
       user_id: user?.$id,
+      vote_average,
+      release_date,
     });
 
-  
+
     if (result.status === "saved") {
       Alert.alert("Saved", "Movie added to Saved!");
     } else if (result.status === "exists") {

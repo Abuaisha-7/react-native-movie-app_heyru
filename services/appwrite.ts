@@ -53,7 +53,7 @@ export const updateSearchCount = async (query: string, movie: Movie) => {
   }
 };
 
-export const saveMovie = async ({ movie_id, title, poster_url, user_id}: { movie_id: number, title: string, poster_url: string, user_id: string }): Promise<{ status: "saved" | "exists" }> => {
+export const saveMovie = async ({ movie_id, title, poster_url, user_id, vote_average, release_date}: { movie_id: number, title: string, poster_url: string, user_id: string, vote_average:number, release_date:string }): Promise<{ status: "saved" | "exists" }> => {
   
   try {
      // check duplicate
@@ -71,7 +71,7 @@ export const saveMovie = async ({ movie_id, title, poster_url, user_id}: { movie
       databaseId: DATABASE_ID,
       tableId: SAVED_COLLECTION_ID,
       rowId: ID.unique(),
-      data: { movie_id, title, poster_url, user_id },
+      data: { movie_id, title, poster_url, user_id, vote_average, release_date },
     });
 
     return { status: "saved" };

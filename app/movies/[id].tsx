@@ -1,10 +1,12 @@
-import { View, Text, ScrollView, Image } from "react-native";
-import React from "react";
+import { icons } from "@/constants/icons";
 import { fetchMovieDetails } from "@/services/api";
 import useFetch from "@/services/usefetch";
 import { router, useLocalSearchParams } from "expo-router";
-import { icons } from "@/constants/icons";
-import { TouchableOpacity } from "react-native";
+import React from "react";
+import { Alert, Image, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+
+import { useAuth } from "@/context/AuthContext";
+import { saveMovie } from "@/services/appwrite";
 
 interface MovieInfoProps {
   label: string;
@@ -22,13 +24,49 @@ const MovieInfo = ({ label, value }: MovieInfoProps) => (
 
 const MovieDetails = () => {
   const { id } = useLocalSearchParams();
+  const { user } = useAuth() as { user: any };
 
   const { data: movie, loading } = useFetch(() =>
     fetchMovieDetails(id as string)
   );
 
+  const handleLongPress = async () => {
+    if (!user?.$id) {
+      Alert.alert("Login Required", "Please log in to save movies.");
+      return;
+    }
+
+    if (!movie?.id || !movie?.title) {
+      Alert.alert("Error", "Movie information is not available.");
+      return;
+    }
+
+    const posterUrl = movie?.poster_path
+    ? `https://image.tmdb.org/t/p/w500${movie?.poster_path}`
+    : "https://placehold.co/600x400/1a1a1a/FFFFFF.png";
+
+    const result = await saveMovie({
+      movie_id: movie?.id,
+      title: movie?.title,
+      poster_url: posterUrl,
+      user_id: user?.$id,
+      vote_average: movie?.vote_average,
+      release_date: movie?.release_date
+    });
+
+    if (result.status === "saved") {
+      Alert.alert("Saved", "Movie added to Saved!");
+    } else if (result.status === "exists") {
+      Alert.alert("Already Saved", "This movie is already in Saved.");
+    } else {
+      Alert.alert("Error", "Could not save movie.");
+    }
+  };
+
+
   return (
     <View className="bg-primary flex-1">
+      <Pressable onLongPress={handleLongPress}>
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         <View>
           <Image
@@ -89,7 +127,7 @@ const MovieDetails = () => {
           />
         </View>
       </ScrollView>
-
+      </Pressable>
       <TouchableOpacity
         className="absolute bottom-6 left-0 right-0 mx-5 bg-accent rounded-lg py-3.5 flex flex-row items-center justify-center z-50"
         onPress={router.back}
