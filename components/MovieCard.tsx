@@ -1,6 +1,9 @@
 import { icons } from '@/constants/icons'
-import { Link } from 'expo-router'
-import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { useAuth } from '@/context/AuthContext'
+import { Movie } from '@/interfaces/interfaces'
+import { saveMovie } from '@/services/appwrite'
+import { Link, router } from 'expo-router'
+import { View, Text, TouchableOpacity, Image, Alert } from 'react-native'
 
 
 const MovieCard = ({
@@ -10,9 +13,37 @@ const MovieCard = ({
   vote_average,
   release_date,
 }: Movie) => {
+
+  const { user } = useAuth() as { user: any };
+  
+  const handleLongPress = async () => {
+    const posterUrl = poster_path
+      ? `https://image.tmdb.org/t/p/w500${poster_path}`
+      : "https://placehold.co/600x400/1a1a1a/FFFFFF.png";
+
+    const result = await saveMovie({
+      movie_id: id,
+      title,
+      poster_url: posterUrl,
+      user_id: user?.$id,
+    });
+
+  
+    if (result.status === "saved") {
+      Alert.alert("Saved", "Movie added to Saved!");
+    } else if (result.status === "exists") {
+      Alert.alert("Already Saved", "This movie is already in Saved.");
+    } else {
+      Alert.alert("Error", "Could not save movie.");
+    }
+
+      // 👇 Refresh SavedScreen AFTER showing the alert
+  router.replace("/saved");
+  };
+
   return (
-    <Link href={`/movies/${id}`} asChild>
-        <TouchableOpacity className="w-[30%]">
+    <Link href={`/movies/${id}`}  asChild>
+        <TouchableOpacity onLongPress={handleLongPress} className="w-[30%]">
             <Image
                 source={{
                     uri: poster_path 

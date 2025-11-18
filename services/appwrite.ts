@@ -1,7 +1,9 @@
+import { Movie, SavedMovie, TrendingMovie } from "@/interfaces/interfaces";
 import { Client, ID, Query, TablesDB } from "react-native-appwrite";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_COLLECTION_ID!;
+const SAVED_COLLECTION_ID = process.env.EXPO_PUBLIC_APPWRITE_SAVED_COLLECTION_ID!;
 
 // console.log("DB ID:", DATABASE_ID);
 // console.log("COLLECTION ID:", COLLECTION_ID);
@@ -51,9 +53,37 @@ export const updateSearchCount = async (query: string, movie: Movie) => {
   }
 };
 
-export const getTrendingMovies = async (): Promise<
-  TrendingMovie[] | undefined
-> => {
+export const saveMovie = async ({ movie_id, title, poster_url, user_id}: { movie_id: number, title: string, poster_url: string, user_id: string }): Promise<{ status: "saved" | "exists" }> => {
+  
+  try {
+     // check duplicate
+     const existing = await database.listRows({
+      databaseId: DATABASE_ID,
+      tableId: SAVED_COLLECTION_ID,
+      queries: [Query.equal("user_id", user_id), Query.equal("movie_id", movie_id)]
+    });
+
+    if (existing.rows.length > 0) {
+      return { status: "exists" };
+    }
+
+     await database.createRow({
+      databaseId: DATABASE_ID,
+      tableId: SAVED_COLLECTION_ID,
+      rowId: ID.unique(),
+      data: { movie_id, title, poster_url, user_id },
+    });
+
+    return { status: "saved" };
+
+  } catch (error) {
+    console.error("Error saving movie:", error);
+    throw error;
+  }
+};
+
+export const getTrendingMovies = async (): Promise<TrendingMovie[] | undefined> => {
+  
   try {
     const result = await database.listRows({
       databaseId: DATABASE_ID,
@@ -62,6 +92,21 @@ export const getTrendingMovies = async (): Promise<
     });
 
     return result.rows as unknown as TrendingMovie[];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
+export const getSavedMovies = async (user_id: string): Promise<SavedMovie[] | undefined> => {
+  try {
+    const result = await database.listRows({
+      databaseId: DATABASE_ID,
+      tableId: SAVED_COLLECTION_ID,
+      queries: [Query.equal("user_id", user_id)],
+    });
+
+    return result.rows as unknown as SavedMovie[];
   } catch (error) {
     console.error(error);
     return undefined;

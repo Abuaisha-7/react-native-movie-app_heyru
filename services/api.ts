@@ -1,3 +1,4 @@
+import { MovieDetails } from "@/interfaces/interfaces";
 
 export const TMDB_CONFIG = {
     BASE_URL: 'https://api.themoviedb.org/3',

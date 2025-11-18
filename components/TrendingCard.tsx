@@ -1,18 +1,41 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native'
+import { View, Text, TouchableOpacity, Image, Alert } from 'react-native'
 import React from 'react'
 import { Link } from 'expo-router'
 import MaskedView from '@react-native-masked-view/masked-view';
 import { images } from '@/constants/images';
 import { TrendingCardProps } from '@/interfaces/interfaces';
+import { saveMovie } from '@/services/appwrite';
+import { useAuth } from '@/context/AuthContext';
 
 const TrendingCard = ({
   movie: { movie_id, title, poster_url },
   index,
 }: TrendingCardProps) => {
+
+  const { user } = useAuth() as { user: any };
+  
+  const handleLongPress = async () => {
+    const result = await saveMovie({
+      movie_id: movie_id,
+      title,
+      poster_url: poster_url,
+      user_id: user?.$id,
+    });
+
+    if (result.status === "saved") {
+      Alert.alert("Saved", "Movie added to Saved!");
+    } else if (result.status === "exists") {
+      Alert.alert("Already Saved", "This movie is already in Saved.");
+    } else {
+      Alert.alert("Error", "Could not save movie.");
+    }
+  };
+
+
   return (
     <Link href={`/movies/${movie_id}`} asChild>
 
-        <TouchableOpacity className='w-32 relative pl-5'>
+        <TouchableOpacity onLongPress={handleLongPress} className='w-32 relative pl-5'>
             <Image
                 source={{uri: poster_url}}
                 className='w-32 h-48 rounded-lg'
