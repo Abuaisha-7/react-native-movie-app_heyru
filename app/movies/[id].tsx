@@ -7,6 +7,7 @@ import { Alert, Image, Pressable, ScrollView, Text, TouchableOpacity, View } fro
 
 import { useAuth } from "@/context/AuthContext";
 import { saveMovie } from "@/services/appwrite";
+import events from "@/lib/events";
 
 interface MovieInfoProps {
   label: string;
@@ -61,6 +62,12 @@ const MovieDetails = () => {
     } else {
       Alert.alert("Error", "Could not save movie.");
     }
+
+       // Tell SavedScreen to refresh
+       events.emit("refreshSaved");
+
+       // 👇 Refresh SavedScreen AFTER showing the alert
+   router.replace("/saved");
   };
 
 

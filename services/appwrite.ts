@@ -112,3 +112,19 @@ export const getSavedMovies = async (user_id: string): Promise<SavedMovie[] | un
     return undefined;
   }
 };
+
+export async function deleteSavedMovie($id : string) {
+  try {
+    await database.deleteRow(
+      {
+        databaseId: DATABASE_ID,
+        tableId: SAVED_COLLECTION_ID,
+        rowId: $id 
+      }
+    );
+    return { status: "success" };
+  } catch (error) {
+    console.error("DELETE MOVIE ERROR:", error);
+    return { status: "error", error };
+  }
+}
