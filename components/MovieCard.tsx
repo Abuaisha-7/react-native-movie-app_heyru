@@ -1,6 +1,7 @@
 import { icons } from '@/constants/icons'
 import { useAuth } from '@/context/AuthContext'
 import { Movie } from '@/interfaces/interfaces'
+import  events  from '@/lib/events'
 import { saveMovie } from '@/services/appwrite'
 import { Link, router } from 'expo-router'
 import { View, Text, TouchableOpacity, Image, Alert } from 'react-native'
@@ -38,6 +39,9 @@ const MovieCard = ({
     } else {
       Alert.alert("Error", "Could not save movie.");
     }
+
+      // Tell SavedScreen to refresh
+      events.emit("refreshSaved");
 
       // 👇 Refresh SavedScreen AFTER showing the alert
   router.replace("/saved");

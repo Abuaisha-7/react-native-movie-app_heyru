@@ -3,6 +3,7 @@ import SavedCard from "@/components/SavedCard";
 import { icons } from "@/constants/icons";
 import { images } from "@/constants/images";
 import { useAuth } from "@/context/AuthContext";
+import  events  from "@/lib/events";
 import { getSavedMovies } from "@/services/appwrite";
 import useFetch from "@/services/usefetch";
 import { useRouter } from "expo-router";
@@ -26,7 +27,7 @@ const {
   data: savedMovies,
   loading: savedLoading,
   error: savedError,
-  refetch,
+ refetch
 } = useFetch(() => {
   if (!userId) {
     return Promise.resolve(undefined);
@@ -40,11 +41,21 @@ const {
 useEffect(() => {
   if (!loading && !user) {
     router.replace("/(auth)/login");
-  }else {
-    refetch()
   }
- 
 }, [user, loading]);
+
+// Listen for refresh requests
+useEffect(() => {
+  const refresh = () => {
+    refetch();
+  };
+
+  events.on("refreshSaved", refresh);
+
+  return () => {
+    events.off("refreshSaved", refresh);
+  };
+}, [refetch]);
 
 // Don’t render UI until redirect completes
 if (!loading && !user) {
